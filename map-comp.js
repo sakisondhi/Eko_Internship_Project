@@ -8,13 +8,17 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
  * @demo demo/index.html
  */
 class MapComp extends PolymerElement {
+
   constructor()
   {
-    super(); // page become more responsive to scroll
+    super();
+    this.circle = null;
+    this.marker=null;
+    this.map=null;
   }
   connectedCallback() {                //add listener
     super.connectedCallback();
-    window.addEventListener('touchmove', event => {
+    window.addEventListener('touchmove', event => {   // page become more responsive to scroll
       console.log(event);
     },{passive: true});
   }
@@ -37,35 +41,35 @@ class MapComp extends PolymerElement {
 
   initGoogleMap()
   {
-    var latlong={lat:this.latitude,lng:this.longitude };
-    var acc=this.accuracy;
+    let latlong={lat:this.latitude,lng:this.longitude };
+    let acc=this.accuracy;
     // set properties of map
-    var mapOptions={
-      zoom:15,
+    let mapOptions={
+      zoom:8,
       mapTypeId: 'terrain', //'satellite';
       center: latlong//or new google.maps.LatLng(28.455134,77.071841)
-
     }
     //creates the map
-    var map= new google.maps.Map(this.$.mapcanvas,mapOptions); //??????????????
+    this.map= new google.maps.Map(this.$.mapcanvas,mapOptions); //??????????????
 
     // set the marker
-    var marker = new google.maps.Marker({
+    this.marker = new google.maps.Marker({
         position: latlong,
-        map:map,
+        map:this.map,
         title:'hello'
     });
 
     // draw a circle to tell the accuracy that we can be anywhere in this circle
-    var circle = new google.maps.Circle({
+    this.circle = new google.maps.Circle({
            strokeColor: '#0000FF',
            strokeOpacity: 0.8,
            strokeWeight: 2,
            fillColor: '#0000FF',
            fillOpacity: 0.2,
-           map: map,
+           map: this.map,
            center: latlong,
            radius: acc,
+           //editable: true
     });
   }
 
@@ -87,17 +91,52 @@ class MapComp extends PolymerElement {
 
     return {
       longitude: {
-        type: Number
+        type: Number,
+        observer: 'longChanged'
       },
       latitude: {
-        type: Number
+        type: Number,
+        observer: 'latChanged'
       },
       accuracy: {
-        type: Number
+        type: Number,
+        observer: 'accChanged'
       }
     };
-
   }
+
+ longChanged()
+ {
+   //console.log(this.map+' '+this.marker+' '+this.circle);
+   if(this.map!=null && this.marker!=null && this.circle!=null)
+   {
+       console.log(this.longitude);
+       let latlng={lat:this.latitude,lng:this.longitude };
+       this.marker.setPosition(latlng);
+
+    }
+ }
+ latChanged()
+ {
+   //console.log(this.map+' '+this.marker+' '+this.circle);
+   if(this.map!=null && this.marker!=null && this.circle!=null)
+   {
+       console.log(this.latitude);
+       let latlng={lat:this.latitude,lng:this.longitude };
+       this.marker.setPosition(latlng);
+  }
+ }
+ accChanged()
+ {
+   //console.log(this.map+' '+this.marker+' '+this.circle);
+   if(this.map!=null && this.marker!=null && this.circle!=null)
+   {
+     let latlng={lat:this.latitude,lng:this.longitude };
+     this.circle.setRadius(this.accuracy);
+     this.circle.setCenter(latlng);
+     console.log(this.circle.getRadius());
+   }
+ }
 
 }
 
